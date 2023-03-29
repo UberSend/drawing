@@ -9,8 +9,8 @@
     </style>
 </head>
 <body>
-    <h1>РИСУЙ ПИДОРАС</h1>
-    <canvas id="canvas" width="1000" height="1000"></canvas>
+    <h1>РИСУЙ ПИДОРАС !</h1>
+    <canvas id="canvas" width="500" height="500"></canvas>
 
     <script>
         // Получаем элемент canvas и контекст для рисования
@@ -74,7 +74,7 @@
         }
 
         // Создаем WebSocket-соединение
-        const socket = new WebSocket('ws://localhost:8080');
+        const socket = new WebSocket('ws://ubersend.github.io/drawing/');
 
         // Обработчик события открытия соединения
         socket.addEventListener('open', () => {
