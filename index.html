@@ -1,16 +1,95 @@
 <!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title>Совместное рисование</title>
     <style>
-      #canvas {
-        border: 1px solid black;
-      }
+        canvas {
+            border: 1px solid black;
+        }
     </style>
-  </head>
-  <body>
-    <h1>Совместное рисование</h1>
+</head>
+<body>
     <canvas id="canvas" width="500" height="500"></canvas>
-    <script src="Java/app.js"></script>
-  </body>
+
+    <script>
+        // Получаем элемент canvas и контекст для рисования
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // Переменные для хранения последней координаты мыши
+        let lastX = 0;
+        let lastY = 0;
+
+        // Функция для рисования линии
+        function drawLine(context, x1, y1, x2, y2) {
+            context.beginPath();
+            context.moveTo(x1, y1);
+            context.lineTo(x2, y2);
+            context.stroke();
+            context.closePath();
+        }
+
+        // Обработчик события нажатия мыши
+        canvas.addEventListener('mousedown', (event) => {
+            lastX = event.offsetX;
+            lastY = event.offsetY;
+        });
+
+        // Обработчик события перемещения мыши
+        canvas.addEventListener('mousemove', (event) => {
+            // Если кнопка мыши нажата
+            if (event.buttons === 1) {
+                // Рисуем линию от последней координаты мыши до текущей
+                drawLine(context, lastX, lastY, event.offsetX, event.offsetY);
+
+                // Отправляем данные на сервер
+                const data = {
+                    x1: lastX,
+                    y1: lastY,
+                    x2: event.offsetX,
+                    y2: event.offsetY
+                };
+                sendData(data);
+
+                // Обновляем последнюю координату мыши
+                lastX = event.offsetX;
+                lastY = event.offsetY;
+            }
+        });
+
+        // Функция для отправки данных на сервер
+        function sendData(data) {
+            // Отправляем данные через WebSocket
+            const socket = new WebSocket('ws://localhost:8080');
+            socket.addEventListener('open', () => {
+                socket.send(JSON.stringify(data));
+                socket.close();
+            });
+        }
+
+        // Функция для обновления полотна по данным с сервера
+        function updateCanvas(data) {
+            drawLine(context, data.x1, data.y1, data.x2, data.y2);
+        }
+
+        // Создаем WebSocket-соединение
+        const socket = new WebSocket('ws://localhost:8080');
+
+        // Обработчик события открытия соединения
+        socket.addEventListener('open', () => {
+            console.log('Соединение установлено');
+        });
+
+        // Обработчик события получения сообщения
+        socket.addEventListener('message', (event) => {
+            const data = JSON.parse(event.data);
+            updateCanvas(data);
+        });
+
+        // Обработчик события закрытия соединения
+        socket.addEventListener('close', () => {
+            console.log('Соединение закрыто');
+        });
+    </script>
+</body>
 </html>
